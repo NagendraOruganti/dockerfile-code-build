@@ -1,0 +1,146 @@
+{
+    "family": "login-app",
+    "containerDefinitions": [
+        {
+            "name": "datadog-agent",
+            "image": "public.ecr.aws/datadog/agent:latest",
+            "cpu": 0,
+            "portMappings": [
+                {
+                    "containerPort": 8126,
+                    "hostPort": 8126,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": false,
+            "environment": [
+                { "name": "DD_API_KEY", "value": "b3de4477f1b35e21a2ae041ecf568bf0" },
+                { "name": "DD_SITE", "value": "datadoghq.com" },
+                { "name": "DD_TRACE_AGENT_URL", "value": "http://127.0.0.1:8126" },
+                { "name": "ECS_FARGATE", "value": "true" },
+                { "name": "DD_APM_INSTRUMENTATION_ENABLED", "value": "true" },
+                { "name": "DD_LOGS_ENABLED", "value": "true" },
+                { "name": "DD_LOG_LEVEL", "value": "debug" },
+                { "name": "DD_PROCESS_CONFIG_PROCESS_COLLECTION_ENABLED", "value": "true" },
+                { "name": "DD_PROCESS_CONFIG_CONTAINER_COLLECTION_ENABLED", "value": "true" },
+                { "name": "DD_APM_NON_LOCAL_TRAFFIC", "value": "true" },
+                { "name": "ECS_CONTAINER_METADATA_URI_V4", "value": "http://169.254.170.2/v4/" },
+                { "name": "DD_APM_IGNORE_RESOURCES", "value": "/health,/ping" },
+                { "name": "DD_DOGSTATSD_NON_LOCAL_TRAFFIC", "value": "true" },
+                { "name": "DD_HOSTNAME", "value": "loginappp" },
+                { "name": "DD_LOG_LEVEL", "value": "debug" },
+                { "name": "DD_TAGS", "value": "env:production1,team:dev,task_family:login-app,service:loginappp,version:1.0.1" }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/datadog-agent",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "datadog"
+                }
+            },
+            "healthCheck": {
+                "command": [
+                    "CMD-SHELL",
+                    "/probe.sh"
+                ],
+                "interval": 30,
+                "timeout": 5,
+                "retries": 2,
+                "startPeriod": 60
+            },
+            "systemControls": []
+        },
+        {
+            "name": "loginapp",
+            "image": "${ECR_REPOSITORY_URI}:latest",
+            "cpu": 0,
+            "portMappings": [
+                {
+                    "containerPort": 80,
+                    "hostPort": 80,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "entryPoint": [
+                "dotnet",
+                "LoginApp.dll"
+            ],
+            "environment": [
+                { "name": "DD_SERVICE", "value": "loginappp" },
+                { "name": "DD_ENV", "value": "production1" },
+                { "name": "DD_VERSION", "value": "1.0.1" },
+                { "name": "DD_APM_INSTRUMENTATION_ENABLED", "value": "true" },
+                { "name": "DD_TRACE_ENABLED", "value": "true" },
+                { "name": "DD_TRACE_DEBUG", "value": "true" },
+                { "name": "DD_TRACE_AGENT_PORT", "value": "8126" },
+                { "name": "DD_TRACE_STARTUP_LOGS", "value": "true" },
+                { "name": "DD_APM_ANALYZED_SPANS", "value": "loginappp|http.request:1" },
+                { "name": "CORECLR_ENABLE_PROFILING", "value": "1" },
+                { "name": "CORECLR_PROFILER", "value": "{846F5F1C-F9AE-4B07-969E-05C26BC060D8}" },
+                { "name": "DD_TRACE_AGENT_URL", "value": "http://127.0.0.1:8126" },
+                { "name": "DD_LOGS_INJECTION", "value": "true" },
+                { "name": "DD_AGENT_HOST", "value": "127.0.0.1" }
+            ],
+            "dockerLabels": {
+              "com.datadoghq.tags.env": "production1",
+              "com.datadoghq.tags.service": "loginappp",
+              "com.datadoghq.tags.version": "1.0.1"
+            },
+            "linuxParameters": {
+                "capabilities": {
+                    "add": [
+                        "SYS_PTRACE"
+                    ],
+                    "drop": []
+                }
+            },
+            "logConfiguration": {
+                "logDriver": "awsfirelens",
+                "options": {
+                    "dd_service": "loginapp",
+                    "Host": "http-intake.logs.datadoghq.com",
+                    "TLS": "on",
+                    "dd_source": "aspnetcore",
+                    "apikey": "24d4fd9b038e72e2beaaec1cdf2ab844",
+                    "Name": "datadog"
+                }
+            },
+            "systemControls": []
+        },
+        {
+            "name": "log-router",
+            "image": "amazon/aws-for-fluent-bit:latest",
+            "cpu": 0,
+            "portMappings": [],
+            "essential": true,
+            "environment": [],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "user": "0",
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/login-router",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "logrouter"
+                }
+            },
+            "systemControls": [],
+            "firelensConfiguration": {
+                "type": "fluentbit"
+            }
+        }
+    ],
+    "taskRoleArn": "${ECS_TASK_ROLE_ARN}",
+    "executionRoleArn": "${ECS_EXECUTION_ROLE_ARN}",
+    "networkMode": "awsvpc",
+    "placementConstraints": [],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "1024",
+    "memory": "3072",
+    "pidMode": "task"
+}
