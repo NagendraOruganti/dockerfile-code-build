@@ -30,7 +30,7 @@ phases:
 
       # Remove these lines to simplify the process:
 
-      - echo "[{\"name\":\"nani1\",\"imageUri\":\"${ECR_REPOSITORY_URI}:latest\"}]" > imagedefinitions.json
+      - echo "[{\"name\":\"nani\",\"imageUri\":\"${ECR_REPOSITORY_URI}:latest\"}]" > imagedefinitions.json
 
       # - sed -i "s|\${ECR_REPOSITORY_URI}|${ECR_REPOSITORY_URI}|g" taskdef.json
 
