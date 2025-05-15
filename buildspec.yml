@@ -1,95 +1,33 @@
+
 version: 0.2
- 
+
+env:
+  variables:
+    ECR_REPOSITORY_URI: 974073908437.dkr.ecr.us-east-1.amazonaws.com/my-repo
+
 phases:
-
   pre_build:
-
     commands:
-    pre_build:
-  commands:
       - echo Logging in to Amazon ECR...
-      
+      - echo "ECR_REPOSITORY_URI=$ECR_REPOSITORY_URI"
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
 
   build:
-
     commands:
-
       - echo Build started on `date`
-
       - docker build --no-cache --pull -t ${ECR_REPOSITORY_URI}:latest .
 
   post_build:
-
     commands:
-
       - echo Build completed on `date`
-
       - docker push ${ECR_REPOSITORY_URI}:latest
-
-      # You can remove the task definition and ECS-related commands as those will be handled manually.
-
-      # Remove these lines to simplify the process:
-
       - echo "[{\"name\":\"nani\",\"imageUri\":\"${ECR_REPOSITORY_URI}:latest\"}]" > imagedefinitions.json
 
-      # - sed -i "s|\${ECR_REPOSITORY_URI}|${ECR_REPOSITORY_URI}|g" taskdef.json
-
-      # - sed -i "s|\${ECS_EXECUTION_ROLE_ARN}|${ECS_EXECUTION_ROLE_ARN}|g" taskdef.json
-
-      # - sed -i "s|\${ECS_TASK_ROLE_ARN}|${ECS_TASK_ROLE_ARN}|g" taskdef.json
-
-      # - echo "Registering new task definition..."
-
-      # - TASK_DEFINITION=$(aws ecs register-task-definition --cli-input-json file://taskdef.json --query "taskDefinition.taskDefinitionArn" --output text)
-
-      # - echo "TASK_DEFINITION=$TASK_DEFINITION"
-
-      # - "if [[ -z \"$TASK_DEFINITION\" ]]; then echo \"ERROR: Task definition registration failed!\" && exit 1; fi"
-
-      # - 'echo "Updating ECS service to use Task Definition: $TASK_DEFINITION"'
-
-      # - aws ecs update-service --cluster LoginApp --service LoginApp --task-definition "$TASK_DEFINITION"
-
-      # - echo "Forcing ECS service to restart tasks..."
-
-      # - aws ecs update-service --cluster LoginApp --service LoginApp --force-new-deployment
-
-      # - echo "Creating updated AppSpec file..."
-
-      # - echo "version: 0.0" > appspec.yaml
-
-      # - echo "Resources:" >> appspec.yaml
-
-      # - echo "  - TargetService:" >> appspec.yaml
-
-      # - echo "      Type: AWS::ECS::Service" >> appspec.yaml
-
-      # - echo "      Properties:" >> appspec.yaml
-
-      # - echo "        TaskDefinition: \"$TASK_DEFINITION\"" >> appspec.yaml
-
-      # - echo "        LoadBalancerInfo:" >> appspec.yaml
-
-      # - echo "          ContainerName: \"loginapp\"" >> appspec.yaml
-
-      # - echo "          ContainerPort: 80" >> appspec.yaml
-
-      # - echo "        PlatformVersion: \"LATEST\"" >> appspec.yaml
- 
 artifacts:
-
   files:
-
-    # You can choose to include image definition or any other artifacts if needed
-
     - imagedefinitions.json
-
   discard-paths: yes
- 
+
 cache:
-
   paths:
-
     - '/root/.nuget/**/*'
- 
